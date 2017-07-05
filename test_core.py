@@ -20,13 +20,30 @@ def test_comment_from_string():
 
 def test_comment_reader_from_file():
     test_comment = get_test_comment()
-    test_content = test_comment.content
-    test_string = json.dumps(test_content)
+    content = test_comment.content
+    content_string = json.dumps(content)
 
-    handle = io.StringIO(test_string)    
+    handle = io.StringIO(content_string)    
 
     count = 0
     for comment in CommentReader.from_file(handle):
-        assert comment.content == test_content
+        assert comment.content == content
         count += 1
+
     assert count == 1
+
+def test_tokenization():
+    text = "The dog bit the boy. The boy bit the dog."
+    test_tokens = text.split()
+    content = {"body": text}
+    comment = Comment(content)
+
+    tokens = comment.get_tokenization()
+    
+    assert tokens == test_tokens
+    
+    
+    
+def test_get_unigrams():
+    pass
+    

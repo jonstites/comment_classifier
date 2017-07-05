@@ -12,6 +12,8 @@ class Comment:
         content = json.loads(comment)
         return Comment(content)
 
+    def get_tokenization(self):
+        return self.content["body"].split()
     
 class CommentReader:
 
@@ -19,3 +21,8 @@ class CommentReader:
         for line in opened_handle:
             comment = Comment.from_string(line)
             yield comment
+
+class MarkovModel:
+
+    def get_ngrams(text, size):
+        pass

@@ -7,28 +7,23 @@ def get_test_comment():
         "body": "my test comment",
         "subreddit": "my_test_subreddit"
     }
-    return Comment
+    return Comment(content)
 
 def test_comment_from_string():
-    content = {
-        "body": "my test comment",
-        "subreddit": "my_test_subreddit"
-        }
-    content_string = json.dumps(content)
+    test_comment = get_test_comment()
+    content_string = json.dumps(test_comment.content)
     
     comment = Comment.from_string(content_string)
 
-    assert comment.content["body"] == "my test comment"
-    assert comment.content["subreddit"] == "my_test_subreddit"
+    for key, value in test_comment.content.items():
+        assert value == comment.content[key]
 
 def test_comment_reader_from_file():
     test_comment = get_test_comment()
     handle = io.StringIO()
-    content = {
-        "body": "my test comment",
-        "subreddit": "my_test_subreddit"
-        }
-    json.dump(content, handle)
+    test_content = test_comment.content
+    
+    json.dump(test_content, handle)
 
-    for test_comment in CommentReader.from_file(handle):
-        assert test_comment.content == content
+    for comment in CommentReader.from_file(handle):
+        assert comment.content == test_content

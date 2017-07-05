@@ -16,7 +16,6 @@ class Comment:
 class CommentReader:
 
     def from_file(opened_handle):
-        for comment_line in opened_handle:
-            decoded_line = comment_line.decode("utf-8")
-            comment = self.from_string(decoded_line)
+        for line in opened_handle:
+            comment = Comment.from_string(line)
             yield comment

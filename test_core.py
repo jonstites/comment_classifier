@@ -20,10 +20,13 @@ def test_comment_from_string():
 
 def test_comment_reader_from_file():
     test_comment = get_test_comment()
-    handle = io.StringIO()
     test_content = test_comment.content
-    
-    json.dump(test_content, handle)
+    test_string = json.dumps(test_content)
 
+    handle = io.StringIO(test_string)    
+
+    count = 0
     for comment in CommentReader.from_file(handle):
         assert comment.content == test_content
+        count += 1
+    assert count == 1

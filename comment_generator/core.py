@@ -15,15 +15,8 @@ class Comment:
     
 class CommentReader:
 
-    def get_comments(self, input_handle):
-        for comment in from_file(input_handle):
-            yield comment
-
-    def from_file(self, input_handle):
-        for comment_line in opened_file:
+    def from_file(opened_handle):
+        for comment_line in opened_handle:
             decoded_line = comment_line.decode("utf-8")
             comment = self.from_string(decoded_line)
             yield comment
-
-
-#        with bz2.BZ2File(self.comment_file, "r") as opened_file:

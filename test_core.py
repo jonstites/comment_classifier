@@ -41,9 +41,22 @@ def test_tokenization():
     tokens = comment.get_tokenization()
     
     assert tokens == test_tokens
-    
-    
+
+def test_get_body():
+    text = "test get body"
+    comment = Comment({"body": text})
+
+    body = comment.get_body()
+
+    assert body == text
     
 def test_get_unigrams():
-    pass
+    text = "The dog bit the boy. The boy bit the dog."
+    comment = Comment({"body": text})
+    tokens = comment.get_tokenization()
+    expected_unigrams = [(token,) for token in tokens]
+    
+    unigrams = list(comment.get_ngrams(1))
+    
+    assert unigrams == expected_unigrams
     

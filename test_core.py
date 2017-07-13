@@ -2,11 +2,15 @@ from comment_generator.core import Comment, CommentReader
 import json
 import io
 
-def get_test_comment():
+def get_test_content():
     content = {
         "body": "my test comment",
         "subreddit": "my_test_subreddit"
     }
+    return content
+
+def get_test_comment():
+    content = get_test_content()
     return Comment(content)
 
 def test_comment_from_string():
@@ -32,31 +36,46 @@ def test_comment_reader_from_file():
 
     assert count == 1
 
+def test_get_body():
+    comment = get_test_comment()
+    text = get_test_content()["body"]
+
+    body = comment.get_body()
+
+    assert body == text
+
 def test_tokenization():
-    text = "The dog bit the boy. The boy bit the dog."
+    comment = get_test_comment()
+    text = comment.get_body()
     test_tokens = text.split()
-    content = {"body": text}
-    comment = Comment(content)
 
     tokens = comment.get_tokenization()
     
     assert tokens == test_tokens
 
-def test_get_body():
-    text = "test get body"
-    comment = Comment({"body": text})
-
-    body = comment.get_body()
-
-    assert body == text
     
 def test_get_unigrams():
-    text = "The dog bit the boy. The boy bit the dog."
-    comment = Comment({"body": text})
+    comment = get_test_comment()
     tokens = comment.get_tokenization()
     expected_unigrams = [(token,) for token in tokens]
     
     unigrams = list(comment.get_ngrams(1))
     
     assert unigrams == expected_unigrams
+    
+def test_get_bigrams():
+    comment = get_test_comment()
+    expected_bigrams = [("my", "test"), ("test", "comment")]
+
+    bigrams = list(comment.get_ngrams(2))
+
+    assert bigrams == expected_bigrams
+
+def test_get_trigrams():
+    comment = get_test_comment()
+    expected_trigrams = [("my", "test", "comment")]
+
+    trigrams = list(comment.get_ngrams(3))
+
+    assert trigrams == expected_trigrams
     

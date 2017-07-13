@@ -7,8 +7,8 @@ class Comment:
 
     def __init__(self, content):
         self.content = content
-        self.comment_start = "<C>"
-        self.comment_end = "</C>"
+        self.pad_token = "<padding>"
+        self.end_token = "</C>"
 
     def from_string(comment):
         content = json.loads(comment)
@@ -23,11 +23,13 @@ class Comment:
 
     def get_ngrams(self, ngram_size):
         tokens = self.get_tokenization()
-        num_tokens = len(tokens)
+        padding = [self.pad_token] * (ngram_size - 1)
+        padded_tokens = padding + tokens + [self.end_token]
+        num_tokens = len(padded_tokens)
         
         stop = num_tokens - (ngram_size - 1)
         for i in range(stop):
-            yield tuple(tokens[i: i + ngram_size])
+            yield tuple(padded_tokens[i: i + ngram_size])
     
 class CommentReader:
 

@@ -57,7 +57,7 @@ def test_tokenization():
 def test_get_unigrams():
     comment = get_test_comment()
     tokens = comment.get_tokenization()
-    expected_unigrams = [(token,) for token in tokens]
+    expected_unigrams = [(token,) for token in tokens] + [(comment.end_token,)]
     
     unigrams = list(comment.get_ngrams(1))
     
@@ -65,7 +65,14 @@ def test_get_unigrams():
     
 def test_get_bigrams():
     comment = get_test_comment()
-    expected_bigrams = [("my", "test"), ("test", "comment")]
+    pad = comment.pad_token
+    end = comment.end_token
+    expected_bigrams = [
+        (pad, "my"),
+        ("my", "test"),
+        ("test", "comment"),
+        ("comment", end)
+    ]
 
     bigrams = list(comment.get_ngrams(2))
 
@@ -73,9 +80,16 @@ def test_get_bigrams():
 
 def test_get_trigrams():
     comment = get_test_comment()
-    expected_trigrams = [("my", "test", "comment")]
+    pad = comment.pad_token
+    end = comment.end_token
+    
+    expected_trigrams = [
+        (pad, pad, "my"),
+        (pad, "my", "test"),
+        ("my", "test", "comment"),
+        ("test", "comment", end)
+    ]
 
     trigrams = list(comment.get_ngrams(3))
 
     assert trigrams == expected_trigrams
-    

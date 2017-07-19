@@ -56,15 +56,6 @@ class Ngram:
         tokens = tokenizer.get_tokens(self.ngram_size)
         ngram_iterator = self.get_ngrams(tokens)
         self.ngrams.update(ngram_iterator)
-
-    def get_tokens(self, text):
-        tokens = self.tokenize(text)
-        padded_tokens = self.pad_tokens(tokens)
-        final_tokens = self.append_end_token(padded_tokens)
-        return final_tokens
-
-    def append_end_token(self, padded_tokens):
-        return padded_tokens + [self.end_token]
     
     def get_ngrams(self, tokens):
         num_tokens = len(tokens)

@@ -1,4 +1,5 @@
-from comment_generator.core import Comment, CommentReader
+from comment_generator.core import Comment, CommentReader, Ngram, Tokenizer
+from collections import Counter
 import json
 import io
 
@@ -22,6 +23,14 @@ def test_comment_from_string():
     for key, value in test_comment.content.items():
         assert value == comment.content[key]
 
+def test_comment_get_body():
+    comment = get_test_comment()
+    text = get_test_content()["body"]
+
+    body = comment.get_body()
+
+    assert body == text
+
 def test_comment_reader_from_file():
     test_comment = get_test_comment()
     content = test_comment.content
@@ -36,60 +45,60 @@ def test_comment_reader_from_file():
 
     assert count == 1
 
-def test_get_body():
-    comment = get_test_comment()
-    text = get_test_content()["body"]
+def test_tokenizer_text_tokens():
+    text = "A test text"
+    test_tokens = ["A", "test", "text"]
 
-    body = comment.get_body()
-
-    assert body == text
-
-def test_tokenization():
-    comment = get_test_comment()
-    text = comment.get_body()
-    test_tokens = text.split()
-
-    tokens = comment.get_tokenization()
+    tokens = Tokenizer(text).get_text_tokens()
     
     assert tokens == test_tokens
 
+def test_tokenizer_padded_tokens():
+    tokenizer = Tokenizer("A test text")
+    pad_token = tokenizer.pad_token
+    ngram_size = 3
+    expected_tokens = [pad_token, pad_token, "A", "test", "text"]
     
-def test_get_unigrams():
-    comment = get_test_comment()
-    tokens = comment.get_tokenization()
-    expected_unigrams = [(token,) for token in tokens] + [(comment.end_token,)]
-    
-    unigrams = list(comment.get_ngrams(1))
-    
-    assert unigrams == expected_unigrams
-    
-def test_get_bigrams():
-    comment = get_test_comment()
-    pad = comment.pad_token
-    end = comment.end_token
-    expected_bigrams = [
-        (pad, "my"),
-        ("my", "test"),
-        ("test", "comment"),
-        ("comment", end)
-    ]
+    tokens = tokenizer.get_padded_tokens(ngram_size)
 
-    bigrams = list(comment.get_ngrams(2))
+    assert tokens == expected_tokens
 
-    assert bigrams == expected_bigrams
+def test_tokenizer_padded_tokens_unigram():
+    tokenizer = Tokenizer("A test text")
+    ngram_size = 1
+    expected_tokens = ["A", "test", "text"]
 
-def test_get_trigrams():
-    comment = get_test_comment()
-    pad = comment.pad_token
-    end = comment.end_token
-    
-    expected_trigrams = [
-        (pad, pad, "my"),
-        (pad, "my", "test"),
-        ("my", "test", "comment"),
-        ("test", "comment", end)
-    ]
+    tokens = tokenizer.get_padded_tokens(1)
 
-    trigrams = list(comment.get_ngrams(3))
+    assert tokens == expected_tokens
 
-    assert trigrams == expected_trigrams
+def test_tokenizer_tokens():
+    tokenizer = Tokenizer("A test text")
+    pad_token = tokenizer.pad_token
+    end_token = tokenizer.end_token
+    ngram_size = 2
+    expected_tokens = [pad_token, "A", "test", "text", end_token]
+
+    tokens = tokenizer.get_tokens(ngram_size)
+
+    assert tokens == expected_tokens
+
+def test_ngram_add():
+    text = "A text ngram text"
+    ngram = Ngram(2)
+    tokenizer = Tokenizer("")
+    pad_token = tokenizer.pad_token
+    end_token = tokenizer.end_token
+    expected_ngrams = Counter(
+        [(pad_token, "A"),
+         ("A", "text"),
+         ("text", "ngram"),
+         ("ngram", "text"),
+         ("text", end_token)
+         ])
+
+
+    ngram.add(text)
+    ngrams = ngram.ngrams
+
+    assert ngrams == expected_ngrams

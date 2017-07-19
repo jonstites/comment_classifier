@@ -1,4 +1,4 @@
-from comment_generator.core import Comment, CommentReader, Ngram, Tokenizer
+from comment_generator.core import Comment, CommentReader, NgramCounter, MultiNgramCounter, Tokenizer
 from collections import Counter
 import json
 import io
@@ -85,7 +85,7 @@ def test_tokenizer_tokens():
 
 def test_ngram_add():
     text = "A text ngram text"
-    ngram = Ngram(2)
+    ngram = NgramCounter(2)
     tokenizer = Tokenizer("")
     pad_token = tokenizer.pad_token
     end_token = tokenizer.end_token
@@ -102,3 +102,20 @@ def test_ngram_add():
     ngrams = ngram.ngrams
 
     assert ngrams == expected_ngrams
+
+def test_ngram_collection_add():
+    text = "A test text"
+    unigrams = NgramCounter(1)
+    unigrams.add(text)
+    bigrams = NgramCounter(2)
+    bigrams.add(text)
+    expected_ngrams = [unigrams.ngrams, bigrams.ngrams]
+
+    ngram_collection = MultiNgramCounter(2)
+    ngram_collection.add(text)
+    ngrams = [ngram.ngrams for ngram in ngram_collection.ngram_counters]
+
+    print(ngrams)
+    print(expected_ngrams)
+    assert ngrams == expected_ngrams
+    

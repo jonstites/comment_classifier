@@ -4,6 +4,7 @@ import bz2
 from collections import Counter
 import json
 
+
 class Comment:
 
     def __init__(self, content):
@@ -44,8 +45,9 @@ class Tokenizer:
     def get_tokens(self, ngram_size):
         padded_tokens = self.get_padded_tokens(ngram_size)
         return padded_tokens + [self.end_token]
+
     
-class Ngram:
+class NgramCounter:
 
     def __init__(self, ngram_size):
         self.ngram_size = ngram_size
@@ -64,15 +66,24 @@ class Ngram:
         for i in range(stop):
             yield tuple(tokens[i: i + self.ngram_size])
 
-class NgramCollection:
 
-    def __init__(self):
-        #[Ngram(i) for i in range(max_ngram_size)]
-        pass
+class MultiNgramCounter:
 
+    def __init__(self, max_ngram_size):
+        self.max_ngram_size = max_ngram_size
+        self.set_ngram_counters()
+
+    def set_ngram_counters(self):
+        ngram_counters = []
+        for ngram_size in range(1, self.max_ngram_size + 1):
+            ngram_counters.append(NgramCounter(ngram_size))
+        self.ngram_counters = ngram_counters
+        
     def add(self, text):
-        pass
+        for ngram_counter in self.ngram_counters:
+            ngram_counter.add(text)
     
+
 class MarkovModel:
 
     def __init__(self, max_ngram_size):
@@ -83,7 +94,7 @@ class MarkovModel:
         self.reset_ngrams()
         
     def reset_ngrams(self):
-        self.ngrams = NgramCollection(self.max_ngram_size)
+        self.ngrams = MultiNgramCounter(self.max_ngram_size)
         
     def train(self, file_handle):
         for comment in CommentReader.from_file(file_handle):

@@ -286,9 +286,10 @@ def test_markov_model_save_load():
     test_comment = get_test_comment()
     expected_model = MarkovModel(size)
     expected_model.add_comment(test_comment)
-    handle = io.StringIO()
+    handle = io.BytesIO()
     expected_model.save(handle)
-
+    handle.seek(0)
+    
     model = MarkovModel.load(handle)
 
     assert model == expected_model

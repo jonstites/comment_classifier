@@ -3,6 +3,7 @@
 import bz2
 from collections import Counter
 import json
+import pickle
 
 
 class Comment:
@@ -135,10 +136,10 @@ class MarkovModel:
         self.ngram_counters.add(text)
 
     def save(self, file_handle):
-        pass
+        pickle.dump(self, file_handle)
 
     def load(file_handle):
-        pass
+        return pickle.load(file_handle)
 
     def __eq__(self, other):
         return self.ngram_counters == other.ngram_counters

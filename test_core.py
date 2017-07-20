@@ -1,4 +1,4 @@
-from comment_generator.core import Comment, CommentReader, NgramCounter, MultiNgramCounter, Tokenizer
+from comment_generator.core import Comment, CommentReader, NgramCounter, MultiNgramCounter, Tokenizer, MarkovModel
 from collections import Counter
 import json
 import io
@@ -31,6 +31,23 @@ def test_comment_get_body():
 
     assert body == text
 
+def test_comment_eq():
+    same_comment = get_test_comment()
+
+    comment = get_test_comment()
+
+    assert comment == same_comment
+    assert not (comment != same_comment)
+
+def test_comment_eq_diff():
+    diff_comment = get_test_comment()
+    diff_comment.content["subreddit"] = "all"
+
+    comment = get_test_comment()
+
+    assert comment != diff_comment
+    assert not (comment == diff_comment)
+    
 def test_comment_reader_from_file():
     test_comment = get_test_comment()
     content = test_comment.content
@@ -83,7 +100,7 @@ def test_tokenizer_tokens():
 
     assert tokens == expected_tokens
 
-def test_ngram_add():
+def test_ngram_counter_add():
     text = "A text ngram text"
     ngram = NgramCounter(2)
     tokenizer = Tokenizer("")
@@ -99,23 +116,94 @@ def test_ngram_add():
 
 
     ngram.add(text)
-    ngrams = ngram.ngrams
+    ngrams = ngram.counts
 
     assert ngrams == expected_ngrams
 
-def test_ngram_collection_add():
+def test_ngram_counter_eq():
+    text = "A test ngram"
+    expected_ngram = NgramCounter(2)
+    expected_ngram.add(text)
+    
+    ngram = NgramCounter(2)
+    ngram.add(text)
+
+    assert ngram == expected_ngram
+    assert not (ngram != expected_ngram)
+
+def test_ngram_counter_eq_diff():
+    text = "A test ngram"
+    expected_ngram = NgramCounter(2)
+    expected_ngram.add("A test ngram differs")
+    
+    ngram = NgramCounter(2)
+    ngram.add(text)
+
+    assert ngram != expected_ngram
+    assert not (ngram == expected_ngram)
+
+def test_multi_ngram_counter_eq():
+    text = "A test text"
+    expected_counter = MultiNgramCounter(2)
+    expected_counter.add(text)
+
+    ngram_counter = MultiNgramCounter(2)
+    ngram_counter.add(text)
+
+    assert ngram_counter == expected_counter
+    assert not (ngram_counter != expected_counter)
+
+def test_multi_ngram_counter_eq_diff():
+    text = "A test text"
+    expected_counter = MultiNgramCounter(2)
+    expected_counter.add("A test text differs")
+
+    ngram_counter = MultiNgramCounter(2)
+    ngram_counter.add(text)
+
+    assert ngram_counter != expected_counter
+    assert not (ngram_counter == expected_counter)
+    
+def test_multi_ngram_counter_add():
     text = "A test text"
     unigrams = NgramCounter(1)
     unigrams.add(text)
     bigrams = NgramCounter(2)
     bigrams.add(text)
-    expected_ngrams = [unigrams.ngrams, bigrams.ngrams]
+    expected_ngrams = [unigrams.counts, bigrams.counts]
 
     ngram_collection = MultiNgramCounter(2)
     ngram_collection.add(text)
-    ngrams = [ngram.ngrams for ngram in ngram_collection.ngram_counters]
+    ngrams = [ngram.counts for ngram in ngram_collection.ngram_counters]
 
-    print(ngrams)
-    print(expected_ngrams)
     assert ngrams == expected_ngrams
     
+def test_markov_model_init():
+    size = 5
+
+    model = MarkovModel(size)
+
+    assert model.max_ngram_size == size
+
+def test_markov_model_reset_size():
+    model = MarkovModel(1)
+    new_size = 3
+
+    model.reset_ngram_size(new_size)
+
+    assert model.max_ngram_size == new_size
+
+def test_markov_model_reset_ngrams():
+    size = 2
+    model = MarkovModel(size)
+    model.add("some data")
+    counters =  MultiNgramCounter(size).ngram_counters
+    expected_ngrams = [counter.counts for counter in counters]
+
+    model.reset_ngrams()
+    ngrams = [counter.counts for counter in model.ngram_counters.ngram_counters]
+    
+    assert ngrams == expected_ngrams
+
+def test_markov_model_add_ngrams():
+    assert False

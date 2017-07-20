@@ -16,7 +16,12 @@ class Comment:
 
     def get_body(self):
         return self.content["body"]
-    
+
+    def __eq__(self, other):
+        return self.content == other.content
+
+    def __ne__(self, other):
+        return not (self.content == other.content)
     
 class CommentReader:
 
@@ -51,13 +56,13 @@ class NgramCounter:
 
     def __init__(self, ngram_size):
         self.ngram_size = ngram_size
-        self.ngrams = Counter()
+        self.counts = Counter()
 
     def add(self, text):
         tokenizer = Tokenizer(text)
         tokens = tokenizer.get_tokens(self.ngram_size)
         ngram_iterator = self.get_ngrams(tokens)
-        self.ngrams.update(ngram_iterator)
+        self.counts.update(ngram_iterator)
     
     def get_ngrams(self, tokens):
         num_tokens = len(tokens)
@@ -66,7 +71,13 @@ class NgramCounter:
         for i in range(stop):
             yield tuple(tokens[i: i + self.ngram_size])
 
+    def __eq__(self, other):
+        return self.counts == other.counts
 
+    def __ne__(self, other):
+        return not (self.counts == other.counts)
+
+    
 class MultiNgramCounter:
 
     def __init__(self, max_ngram_size):
@@ -82,7 +93,20 @@ class MultiNgramCounter:
     def add(self, text):
         for ngram_counter in self.ngram_counters:
             ngram_counter.add(text)
-    
+
+    def __eq__(self, other):
+        if self.max_ngram_size != other.max_ngram_size:
+            return False
+
+        zipped_counters = zip(self.ngram_counters, other.ngram_counters)
+        for counter_1, counter_2 in zipped_counters:
+            if counter_1 != counter_2:
+                return False
+        return True
+        
+    def __neq__(self, other):
+        return not (self == other)
+
 
 class MarkovModel:
 
@@ -94,7 +118,7 @@ class MarkovModel:
         self.reset_ngrams()
         
     def reset_ngrams(self):
-        self.ngrams = MultiNgramCounter(self.max_ngram_size)
+        self.ngram_counters = MultiNgramCounter(self.max_ngram_size)
         
     def train(self, file_handle):
         for comment in CommentReader.from_file(file_handle):
@@ -102,4 +126,7 @@ class MarkovModel:
 
     def add_comment(self, comment):
         text = comment.get_body()
-        NgramCollection.add(text)
+        self.add(text)
+
+    def add(self, text):
+        self.ngram_counters.add(text)

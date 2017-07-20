@@ -48,7 +48,7 @@ def test_comment_eq_diff():
     assert comment != diff_comment
     assert not (comment == diff_comment)
     
-def test_comment_reader_from_file():
+def test_comment_reader_from_open_file():
     test_comment = get_test_comment()
     content = test_comment.content
     content_string = json.dumps(content)
@@ -56,7 +56,7 @@ def test_comment_reader_from_file():
     handle = io.StringIO(content_string)    
 
     count = 0
-    for comment in CommentReader.from_file(handle):
+    for comment in CommentReader.from_open_file(handle):
         assert comment.content == content
         count += 1
 
@@ -196,13 +196,24 @@ def test_markov_model_init():
 
     assert model.max_ngram_size == size
 
-def test_markov_model_reset_size():
+def test_markov_model_reset_ngram_size():
     model = MarkovModel(1)
     new_size = 3
 
     model.reset_ngram_size(new_size)
 
     assert model.max_ngram_size == new_size
+
+def test_markov_model_reset_ngrams():
+    size = 2
+    expected_ngrams = MultiNgramCounter(size)
+    model = MarkovModel(size)
+    model.add("some data")
+
+    model.reset_ngrams()
+    ngrams = model.ngram_counters
+    
+    assert ngrams == expected_ngrams
 
 def test_markov_model_add():
     size = 2
@@ -215,17 +226,69 @@ def test_markov_model_add():
     ngrams = model.ngram_counters 
 
     assert ngrams == expected_ngrams
-    
-def test_markov_model_reset_ngrams():
-    size = 2
-    expected_ngrams = MultiNgramCounter(size)
-    model = MarkovModel(size)
-    model.add("some data")
-
-    model.reset_ngrams()
-    ngrams = model.ngram_counters
-    
-    assert ngrams == expected_ngrams
 
 def test_markov_model_add_comment():
-    assert False
+    size = 2
+    comment = get_test_comment()
+    expected_ngrams = MultiNgramCounter(size)
+    expected_ngrams.add(comment.get_body())
+    model = MarkovModel(size)
+
+    model.add_comment(comment)
+    ngrams = model.ngram_counters
+
+    assert ngrams == expected_ngrams
+    
+def test_markov_model_train():
+    size = 2
+    test_comment = get_test_comment()
+    content = test_comment.content
+    content_string = json.dumps(content)
+    two_comments = "\n".join([content_string, content_string])
+    handle = io.StringIO(two_comments)
+    expected_ngrams = MultiNgramCounter(size)
+    expected_ngrams.add(test_comment.get_body())
+    expected_ngrams.add(test_comment.get_body())
+    model = MarkovModel(size)
+    
+    model.train(handle)
+    ngrams = model.ngram_counters
+
+    assert ngrams == expected_ngrams
+
+def test_markov_model_eq():
+    size = 3
+    test_comment = get_test_comment()
+    expected_model = MarkovModel(size)
+    expected_model.add_comment(test_comment)
+
+    model = MarkovModel(size)
+    model.add_comment(test_comment)
+
+    assert model == expected_model
+    assert not (model != expected_model)
+    
+def test_markov_model_eq_diff():
+    size = 3
+    test_comment = get_test_comment()
+    expected_model = MarkovModel(size)
+    expected_model.add("A totally different text")
+
+    model = MarkovModel(size)
+    model.add_comment(test_comment)
+
+    assert model != expected_model
+    assert not (model == expected_model)
+    
+
+def test_markov_model_save_load():
+    size = 3
+    test_comment = get_test_comment()
+    expected_model = MarkovModel(size)
+    expected_model.add_comment(test_comment)
+    handle = io.StringIO()
+    expected_model.save(handle)
+
+    model = MarkovModel.load(handle)
+
+    assert model == expected_model

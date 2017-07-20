@@ -25,7 +25,7 @@ class Comment:
     
 class CommentReader:
 
-    def from_file(opened_handle):
+    def from_open_file(opened_handle):
         for line in opened_handle:
             comment = Comment.from_string(line)
             yield comment
@@ -124,7 +124,7 @@ class MarkovModel:
         self.ngram_counters = MultiNgramCounter(self.max_ngram_size)
         
     def train(self, file_handle):
-        for comment in CommentReader.from_file(file_handle):
+        for comment in CommentReader.from_open_file(file_handle):
             self.add_comment(comment)
 
     def add_comment(self, comment):
@@ -133,3 +133,15 @@ class MarkovModel:
 
     def add(self, text):
         self.ngram_counters.add(text)
+
+    def save(self, file_handle):
+        pass
+
+    def load(file_handle):
+        pass
+
+    def __eq__(self, other):
+        return self.ngram_counters == other.ngram_counters
+
+    def __ne__(self, other):
+        return not (self == other)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import bz2
 from collections import Counter
 import json
 import pickle
@@ -11,8 +10,10 @@ class Comment:
     def __init__(self, content):
         self.content = content
 
-    def from_string(comment):
-        content = json.loads(comment)
+    def from_string(text):
+        if isinstance(text, bytes):
+            text = text.decode("utf-8")
+        content = json.loads(text)
         return Comment(content)
 
     def get_body(self):
@@ -125,8 +126,12 @@ class MarkovModel:
         self.ngram_counters = MultiNgramCounter(self.max_ngram_size)
         
     def train(self, file_handle):
+        i = 0
         for comment in CommentReader.from_open_file(file_handle):
             self.add_comment(comment)
+            i += 1
+            if i % 100000 == 0:
+                print(i)
 
     def add_comment(self, comment):
         text = comment.get_body()

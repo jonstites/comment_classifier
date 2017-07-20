@@ -11,4 +11,5 @@ setup(name='comment_generator',
       install_requires=[
           "argh"
           ],
-      zip_safe=False)
+      zip_safe=False,
+      scripts=["bin/commenter.py"])

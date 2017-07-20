@@ -114,7 +114,6 @@ def test_ngram_counter_add():
          ("text", end_token)
          ])
 
-
     ngram.add(text)
     ngrams = ngram.counts
 
@@ -142,6 +141,18 @@ def test_ngram_counter_eq_diff():
     assert ngram != expected_ngram
     assert not (ngram == expected_ngram)
 
+def test_ngram_counter_eq_diff_sizes():
+    text = "A test ngram"
+    expected_ngram = NgramCounter(1)
+    expected_ngram.add(text)
+    
+    ngram = NgramCounter(2)
+    ngram.add(text)
+
+    assert ngram != expected_ngram
+    assert not (ngram == expected_ngram)
+    
+    
 def test_multi_ngram_counter_eq():
     text = "A test text"
     expected_counter = MultiNgramCounter(2)
@@ -170,11 +181,11 @@ def test_multi_ngram_counter_add():
     unigrams.add(text)
     bigrams = NgramCounter(2)
     bigrams.add(text)
-    expected_ngrams = [unigrams.counts, bigrams.counts]
+    expected_ngrams = [unigrams, bigrams]
 
     ngram_collection = MultiNgramCounter(2)
     ngram_collection.add(text)
-    ngrams = [ngram.counts for ngram in ngram_collection.ngram_counters]
+    ngrams = ngram_collection.ngram_counters
 
     assert ngrams == expected_ngrams
     
@@ -193,17 +204,28 @@ def test_markov_model_reset_size():
 
     assert model.max_ngram_size == new_size
 
+def test_markov_model_add():
+    size = 2
+    text = "Test text"
+    expected_ngrams = MultiNgramCounter(size)
+    expected_ngrams.add(text)
+    model = MarkovModel(size)
+
+    model.add(text)
+    ngrams = model.ngram_counters 
+
+    assert ngrams == expected_ngrams
+    
 def test_markov_model_reset_ngrams():
     size = 2
+    expected_ngrams = MultiNgramCounter(size)
     model = MarkovModel(size)
     model.add("some data")
-    counters =  MultiNgramCounter(size).ngram_counters
-    expected_ngrams = [counter.counts for counter in counters]
 
     model.reset_ngrams()
-    ngrams = [counter.counts for counter in model.ngram_counters.ngram_counters]
+    ngrams = model.ngram_counters
     
     assert ngrams == expected_ngrams
 
-def test_markov_model_add_ngrams():
+def test_markov_model_add_comment():
     assert False

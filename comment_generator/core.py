@@ -98,6 +98,9 @@ class MultiNgramCounter:
         if self.max_ngram_size != other.max_ngram_size:
             return False
 
+        if len(self.ngram_counters) != len(other.ngram_counters):
+            return False
+        
         zipped_counters = zip(self.ngram_counters, other.ngram_counters)
         for counter_1, counter_2 in zipped_counters:
             if counter_1 != counter_2:

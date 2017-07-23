@@ -1,7 +1,9 @@
-from comment_generator.core import Comment, CommentReader, NgramCounter, MultiNgramCounter, Tokenizer, MarkovModel
+from comment_generator.core import Comment, CommentReader, NgramCounter, MultiNgramCounter, Tokenizer, MarkovModel, NgramDatabase
 from collections import Counter
 import json
 import io
+import os
+
 
 def get_test_content():
     content = {
@@ -293,3 +295,21 @@ def test_markov_model_save_load():
     model = MarkovModel.load(handle)
 
     assert model == expected_model
+
+def test_ngram_database_connect():
+    db_name = "test_ngram.db"
+    ngram_db = NgramDatabase(db_name)
+
+    assert os.path.exists(db_name)
+
+    os.remove(db_name)
+
+def test_ngram_database_create_table():
+    db_name = "test_ngram.db"
+    ngram_db = NgramDatabase(db_name)
+    query = "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?"
+    
+    ngram_db.create_table()
+    result = ngram_db.connection.execute(query, ("ngrams",))
+
+    assert list(result) != []

@@ -3,6 +3,7 @@
 from collections import Counter
 import json
 import pickle
+import sqlite3
 
 
 class Comment:
@@ -104,8 +105,8 @@ class MultiNgramCounter:
             return False
         
         zipped_counters = zip(self.ngram_counters, other.ngram_counters)
-        for counter_1, counter_2 in zipped_counters:
-            if counter_1 != counter_2:
+        for self_counter, other_counter in zipped_counters:
+            if self_counter != other_counter:
                 return False
         return True
         
@@ -113,6 +114,25 @@ class MultiNgramCounter:
         return not (self == other)
 
 
+class NgramDatabase:
+
+    def __init__(self, database_name):
+        self.database_name = database_name
+        self.connect_to_db()
+
+    def connect_to_db(self):
+        self.connection = sqlite3.connect(self.database_name)
+    
+    def create_table(self):
+        command = "CREATE TABLE 'ngrams' (ngram text primary key, count integer)"
+        self.connection.execute(command)
+        
+    def add_to_db(self):
+        pass
+
+    def add_from_db(self):
+        pass
+    
 class MarkovModel:
 
     def __init__(self, max_ngram_size):
@@ -129,6 +149,10 @@ class MarkovModel:
         i = 0
         for comment in CommentReader.from_open_file(file_handle):
             self.add_comment(comment)
+
+            if self.ngrams_too_large():
+                self.save_to_database()
+
             i += 1
             if i % 100000 == 0:
                 print(i)
@@ -140,6 +164,12 @@ class MarkovModel:
     def add(self, text):
         self.ngram_counters.add(text)
 
+    def ngrams_too_large(self):
+        pass
+        
+    def save_to_database(self):
+        pass
+        
     def save(self, file_handle):
         pickle.dump(self, file_handle)
 

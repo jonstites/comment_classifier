@@ -31,12 +31,9 @@ class Comment:
     
 class CommentReader:
 
-    def from_open_file(opened_handle, end_token=False):
+    def from_open_file(opened_handle):
         for line in opened_handle:
             comment = Comment.from_string(line)
-
-            if end_token:
-                comment.add_end_token()
 
             yield comment
 

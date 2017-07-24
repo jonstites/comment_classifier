@@ -9,6 +9,7 @@ import sqlite3
 
 class Comment:
 
+
     def __init__(self, content):
         self.content = content
 
@@ -30,33 +31,33 @@ class Comment:
     
 class CommentReader:
 
-    def from_open_file(opened_handle):
+    def from_open_file(opened_handle, end_token=False):
         for line in opened_handle:
             comment = Comment.from_string(line)
+
+            if end_token:
+                comment.add_end_token()
+
             yield comment
 
 
 class Tokenizer:
 
-    def __init__(self, text):
-        self.text = text
-        self.pad_token = "<padding>"
-        self.end_token = "</C>"
+    pad_token = "<padding>"
+    end_token = "</C>"
+    
+    def tokens(text):
+        return text.split()
 
-    def get_text_tokens(self):
-        return self.text.split()
-
-    def get_padded_tokens(self, ngram_size):
+    def padded_tokens(text, ngram_size):
         padding_amount = ngram_size - 1
-        padding_tokens = [self.pad_token] * padding_amount
-        text_tokens = self.get_text_tokens()
+        padding_tokens = [Tokenizer.pad_token] * padding_amount
+        text_tokens = Tokenizer.tokens(text)
         return padding_tokens + text_tokens
 
-    def get_tokens(self, ngram_size):
-        padded_tokens = self.get_padded_tokens(ngram_size)
-        return padded_tokens + [self.end_token]
+    def padded_tokens_with_end(text, ngram_size):
+        return Tokenizer.padded_tokens(text, ngram_size) + [Tokenizer.end_token]
 
-    
 class NgramCounter:
 
     def __init__(self, ngram_size):
@@ -64,8 +65,7 @@ class NgramCounter:
         self.counts = Counter()
 
     def add(self, text):
-        tokenizer = Tokenizer(text)
-        tokens = tokenizer.get_tokens(self.ngram_size)
+        tokens = Tokenizer.padded_tokens_with_end(text, self.ngram_size)
         ngram_iterator = self.ngrams_from_tokens(tokens)
         self.counts.update(ngram_iterator)
     

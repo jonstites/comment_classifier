@@ -17,6 +17,13 @@ def get_test_comment():
     content = get_test_content()
     return Comment(content)
 
+def get_pad_token():
+    return Tokenizer.pad_token
+
+def get_end_token():
+    return Tokenizer.end_token
+
+# Comment class
 def test_comment_from_string():
     test_comment = get_test_comment()
     content_string = json.dumps(test_comment.content)
@@ -50,7 +57,8 @@ def test_comment_eq_diff():
 
     assert comment != diff_comment
     assert not (comment == diff_comment)
-    
+
+# CommentReader class
 def test_comment_reader_from_open_file():
     test_comment = get_test_comment()
     content = test_comment.content
@@ -69,37 +77,37 @@ def test_tokenizer_text_tokens():
     text = "A test text"
     test_tokens = ["A", "test", "text"]
 
-    tokens = Tokenizer(text).get_text_tokens()
+    tokens = Tokenizer.tokens(text)
     
     assert tokens == test_tokens
 
 def test_tokenizer_padded_tokens():
-    tokenizer = Tokenizer("A test text")
-    pad_token = tokenizer.pad_token
+    text = "A test text"
+    pad_token = get_pad_token()
     ngram_size = 3
     expected_tokens = [pad_token, pad_token, "A", "test", "text"]
     
-    tokens = tokenizer.get_padded_tokens(ngram_size)
+    tokens = Tokenizer.padded_tokens(text, ngram_size)
 
     assert tokens == expected_tokens
 
 def test_tokenizer_padded_tokens_unigram():
-    tokenizer = Tokenizer("A test text")
+    text = "A test text"
     ngram_size = 1
     expected_tokens = ["A", "test", "text"]
 
-    tokens = tokenizer.get_padded_tokens(1)
+    tokens = Tokenizer.padded_tokens(text, 1)
 
     assert tokens == expected_tokens
 
-def test_tokenizer_tokens():
-    tokenizer = Tokenizer("A test text")
-    pad_token = tokenizer.pad_token
-    end_token = tokenizer.end_token
+def test_tokenizer_padded_tokens_with_end():
+    text = "A test text"
+    pad_token = get_pad_token()
+    end_token = get_end_token()
     ngram_size = 2
     expected_tokens = [pad_token, "A", "test", "text", end_token]
 
-    tokens = tokenizer.get_tokens(ngram_size)
+    tokens = Tokenizer.padded_tokens_with_end(text, ngram_size)
 
     assert tokens == expected_tokens
 
@@ -118,8 +126,8 @@ def test_ngram_counter_ngrams_from_tokens():
 def test_ngram_counter_add():
     text = "A text ngram text"
     ngram = NgramCounter(2)
-    pad_token = Tokenizer("").pad_token
-    end_token = Tokenizer("").end_token
+    pad_token = get_pad_token()
+    end_token = get_end_token()
     expected_ngrams = Counter(
         [(pad_token, "A"),
          ("A", "text"),
@@ -136,7 +144,7 @@ def test_ngram_counter_add():
     
 def test_ngram_counter_get_ngrams():
     text = "More testing testing"
-    end_token = Tokenizer("").end_token
+    end_token = get_end_token()
     ngram_counter = NgramCounter(1)
     ngram_counter.add(text)
     expected_ngrams = Counter([("More",), ("testing",), ("testing",), (end_token,)]).items()

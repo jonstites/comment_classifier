@@ -2,6 +2,7 @@
 
 from collections import Counter
 import json
+import itertools
 import pickle
 import sqlite3
 
@@ -25,6 +26,7 @@ class Comment:
 
     def __ne__(self, other):
         return not (self.content == other.content)
+
     
 class CommentReader:
 
@@ -64,16 +66,19 @@ class NgramCounter:
     def add(self, text):
         tokenizer = Tokenizer(text)
         tokens = tokenizer.get_tokens(self.ngram_size)
-        ngram_iterator = self.get_ngrams(tokens)
+        ngram_iterator = self.ngrams_from_tokens(tokens)
         self.counts.update(ngram_iterator)
     
-    def get_ngrams(self, tokens):
+    def ngrams_from_tokens(self, tokens):
         num_tokens = len(tokens)
         
         stop = num_tokens - (self.ngram_size - 1)
         for i in range(stop):
             yield tuple(tokens[i: i + self.ngram_size])
 
+    def get_ngrams(self):
+        return self.counts.items()
+        
     def __eq__(self, other):
         return self.counts == other.counts
 
@@ -97,6 +102,10 @@ class MultiNgramCounter:
         for ngram_counter in self.ngram_counters:
             ngram_counter.add(text)
 
+    def get_ngrams(self):
+        all_ngrams = (ngram_counter.get_ngrams() for ngram_counter in self.ngram_counters)
+        return itertools.chain(*all_ngrams)
+            
     def __eq__(self, other):
         if self.max_ngram_size != other.max_ngram_size:
             return False
@@ -127,11 +136,21 @@ class NgramDatabase:
         command = "CREATE TABLE 'ngrams' (ngram text primary key, count integer)"
         self.connection.execute(command)
         
-    def add_to_db(self):
+    def add_to_db(self, ngram_counter):
         pass
 
-    def add_from_db(self):
+    def update_counts_from_db(self, ngram_counter):
+        for ngram, count in ngram_counter.get_ngrams():
+            database_count = self.lookup_count(ngram)
+            updated_count = count + database_count
+            self.set_count(ngram, updated_count)
+
+    def lookup_count(self, ngram):
         pass
+        
+    def set_count(self):
+        pass
+
     
 class MarkovModel:
 

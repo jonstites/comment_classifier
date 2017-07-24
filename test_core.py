@@ -2,6 +2,7 @@ from comment_generator.core import Comment, CommentReader, NgramCounter, MultiNg
 from collections import Counter
 import json
 import io
+import itertools
 import os
 
 
@@ -102,12 +103,23 @@ def test_tokenizer_tokens():
 
     assert tokens == expected_tokens
 
+def test_ngram_counter_ngrams_from_tokens():
+    tokens = ["A", "test", "ngram"]
+    ngram_counter = NgramCounter(2)
+    expected_ngrams = [
+        ("A", "test"),
+        ("test", "ngram")
+        ]
+
+    ngrams = list(ngram_counter.ngrams_from_tokens(tokens))
+
+    assert ngrams == expected_ngrams
+
 def test_ngram_counter_add():
     text = "A text ngram text"
     ngram = NgramCounter(2)
-    tokenizer = Tokenizer("")
-    pad_token = tokenizer.pad_token
-    end_token = tokenizer.end_token
+    pad_token = Tokenizer("").pad_token
+    end_token = Tokenizer("").end_token
     expected_ngrams = Counter(
         [(pad_token, "A"),
          ("A", "text"),
@@ -121,6 +133,18 @@ def test_ngram_counter_add():
 
     assert ngrams == expected_ngrams
 
+    
+def test_ngram_counter_get_ngrams():
+    text = "More testing testing"
+    end_token = Tokenizer("").end_token
+    ngram_counter = NgramCounter(1)
+    ngram_counter.add(text)
+    expected_ngrams = Counter([("More",), ("testing",), ("testing",), (end_token,)]).items()
+
+    ngrams = ngram_counter.get_ngrams()
+
+    assert ngrams == expected_ngrams
+    
 def test_ngram_counter_eq():
     text = "A test ngram"
     expected_ngram = NgramCounter(2)
@@ -154,6 +178,28 @@ def test_ngram_counter_eq_diff_sizes():
     assert ngram != expected_ngram
     assert not (ngram == expected_ngram)
     
+def test_multi_ngram_counter_get_ngrams():
+    text = "A test text"
+    unigram_counter = NgramCounter(1)
+    unigram_counter.add(text)
+    unigrams = unigram_counter.get_ngrams()
+    bigram_counter = NgramCounter(2)
+    bigram_counter.add(text)
+    bigrams = bigram_counter.get_ngrams()
+    expected_ngrams = Counter()
+
+    for ngram, count in unigrams:
+        expected_ngrams[ngram] += count
+    
+    for ngram, count in bigrams:
+        expected_ngrams[ngram] += count
+        
+    ngram_counter = MultiNgramCounter(2)
+    ngram_counter.add(text)
+    
+    ngrams = ngram_counter.get_ngrams()
+
+    assert sorted(list(ngrams)) == sorted(list(expected_ngrams.items()))
     
 def test_multi_ngram_counter_eq():
     text = "A test text"

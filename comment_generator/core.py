@@ -9,7 +9,6 @@ import sqlite3
 
 class Comment:
 
-
     def __init__(self, content):
         self.content = content
 
@@ -47,100 +46,68 @@ class Tokenizer:
         return text.split()
 
     def padded_tokens(text, ngram_size):
-        padding_amount = ngram_size - 1
-        padding_tokens = [Tokenizer.pad_token] * padding_amount
+        pad_amount = ngram_size - 1
+        pad_tokens = [Tokenizer.pad_token] * pad_amount
         text_tokens = Tokenizer.tokens(text)
-        return padding_tokens + text_tokens
+        return pad_tokens + text_tokens
 
     def padded_tokens_with_end(text, ngram_size):
         return Tokenizer.padded_tokens(text, ngram_size) + [Tokenizer.end_token]
 
-class NgramCounter:
 
-    def __init__(self, ngram_size):
-        self.ngram_size = ngram_size
-        self.counts = Counter()
+class Smoothing:
 
-    def add(self, text):
+    def unkify_if_needed():
+        pass
+
+
+class Ngram:
+
+    def __init__(self, tokens, subreddit):
+        self.tokens = tokens
+        self.subreddit = subreddit
+
+    def comment_to_ngrams(comment):
+        # maybe take a range of ngrams?
         tokens = Tokenizer.padded_tokens_with_end(text, self.ngram_size)
         ngram_iterator = self.ngrams_from_tokens(tokens)
         self.counts.update(ngram_iterator)
     
-    def ngrams_from_tokens(self, tokens):
         num_tokens = len(tokens)
         
         stop = num_tokens - (self.ngram_size - 1)
         for i in range(stop):
             yield tuple(tokens[i: i + self.ngram_size])
+        pass
+    
 
-    def get_ngrams(self):
-        return self.counts.items()
-        
-    def __eq__(self, other):
-        return self.counts == other.counts
+class NgramBuffer:
 
-    def __ne__(self, other):
-        return not (self.counts == other.counts)
+    def __init__(self):
+        pass
+
+    def fill(self, file_handle):
+        pass
 
     
-class MultiNgramCounter:
-
-    def __init__(self, max_ngram_size):
-        self.max_ngram_size = max_ngram_size
-        self.set_ngram_counters()
-
-    def set_ngram_counters(self):
-        ngram_counters = []
-        for ngram_size in range(1, self.max_ngram_size + 1):
-            ngram_counters.append(NgramCounter(ngram_size))
-        self.ngram_counters = ngram_counters
-        
-    def add(self, text):
-        for ngram_counter in self.ngram_counters:
-            ngram_counter.add(text)
-
-    def get_ngrams(self):
-        all_ngrams = (ngram_counter.get_ngrams() for ngram_counter in self.ngram_counters)
-        return itertools.chain(*all_ngrams)
-            
-    def __eq__(self, other):
-        if self.max_ngram_size != other.max_ngram_size:
-            return False
-
-        if len(self.ngram_counters) != len(other.ngram_counters):
-            return False
-        
-        zipped_counters = zip(self.ngram_counters, other.ngram_counters)
-        for self_counter, other_counter in zipped_counters:
-            if self_counter != other_counter:
-                return False
-        return True
-        
-    def __neq__(self, other):
-        return not (self == other)
-
-
 class NgramDatabase:
 
     def __init__(self, database_name):
         self.database_name = database_name
-        self.connect_to_db()
+        self.connection = self.connect_to_db()
 
     def connect_to_db(self):
-        self.connection = sqlite3.connect(self.database_name)
+        return sqlite3.connect(self.database_name)
     
     def create_table(self):
         command = "CREATE TABLE 'ngrams' (ngram text primary key, count integer)"
         self.connection.execute(command)
         
-    def add_to_db(self, ngram_counter):
+    def buffered_store(self, ngrams):
         pass
 
     def update_counts_from_db(self, ngram_counter):
-        for ngram, count in ngram_counter.get_ngrams():
-            database_count = self.lookup_count(ngram)
-            updated_count = count + database_count
-            self.set_count(ngram, updated_count)
+        pass
 
     def lookup_count(self, ngram):
         pass
@@ -152,48 +119,19 @@ class NgramDatabase:
 class MarkovModel:
 
     def __init__(self, max_ngram_size):
-        self.reset_ngram_size(max_ngram_size)
-
-    def reset_ngram_size(self, max_ngram_size):
         self.max_ngram_size = max_ngram_size
-        self.reset_ngrams()
-        
-    def reset_ngrams(self):
-        self.ngram_counters = MultiNgramCounter(self.max_ngram_size)
-        
+    
     def train(self, file_handle):
-        i = 0
-        for comment in CommentReader.from_open_file(file_handle):
-            self.add_comment(comment)
-
-            if self.ngrams_too_large():
-                self.save_to_database()
-
-            i += 1
-            if i % 100000 == 0:
-                print(i)
+        pass
 
     def add_comment(self, comment):
-        text = comment.get_body()
-        self.add(text)
+        pass
 
     def add(self, text):
-        self.ngram_counters.add(text)
+        pass
 
-    def ngrams_too_large(self):
-        pass
-        
-    def save_to_database(self):
-        pass
-        
     def save(self, file_handle):
-        pickle.dump(self, file_handle)
+        pass
 
     def load(file_handle):
-        return pickle.load(file_handle)
-
-    def __eq__(self, other):
-        return self.ngram_counters == other.ngram_counters
-
-    def __ne__(self, other):
-        return not (self == other)
+        pass

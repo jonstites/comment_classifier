@@ -23,7 +23,6 @@ def get_pad_token():
 def get_end_token():
     return Tokenizer.end_token
 
-# Comment class
 def test_comment_from_string():
     test_comment = get_test_comment()
     content_string = json.dumps(test_comment.content)
@@ -58,7 +57,6 @@ def test_comment_eq_diff():
     assert comment != diff_comment
     assert not (comment == diff_comment)
 
-# CommentReader class
 def test_comment_reader_from_open_file():
     test_comment = get_test_comment()
     content = test_comment.content
@@ -111,14 +109,17 @@ def test_tokenizer_padded_tokens_with_end():
 
     assert tokens == expected_tokens
 
-def test_ngram_init():
-    subreddit = "all"
-    tokens = ("hi", "everybody",)
+def test_ngram_enumerate_ngrams():
+    tokens = ["a", "b", "cde"]
+    expected_ngrams = [Ngram((token,)) for token in tokens]
+    ngram_size = 1
 
-    ngram = Ngram(tokens, subreddit)
+    ngrams = list(Ngram.enumerate_ngrams(tokens, 1))
 
-    assert ngram.tokens == tokens
-    assert ngram.subreddit == subreddit
+    print([ngram.tokens for ngram in ngrams])
+    print([ngram.tokens for ngram in expected_ngrams])
+
+    assert ngrams == expected_ngrams    
     
 def test_markov_model_init():
     size = 5

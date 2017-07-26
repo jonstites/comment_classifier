@@ -1,4 +1,4 @@
-from comment_generator.core import Comment, CommentReader, Ngram, Tokenizer, MarkovModel, NgramDatabase
+from comment_generator.core import Comment, CommentReader, NgramEnumerator, Tokenizer, MarkovModel, NgramDatabase
 from collections import Counter
 import json
 import io
@@ -111,15 +111,21 @@ def test_tokenizer_padded_tokens_with_end():
 
 def test_ngram_enumerate_ngrams():
     tokens = ["a", "b", "cde"]
-    expected_ngrams = [Ngram((token,)) for token in tokens]
+    expected_ngrams = [(token,) for token in tokens]
     ngram_size = 1
 
-    ngrams = list(Ngram.enumerate_ngrams(tokens, 1))
-
-    print([ngram.tokens for ngram in ngrams])
-    print([ngram.tokens for ngram in expected_ngrams])
+    ngrams = list(NgramEnumerator.enumerate_ngrams(tokens, ngram_size))
 
     assert ngrams == expected_ngrams    
+
+def test_ngram_enumerate_ngrams_bigrams():
+    tokens = ["a", "b"]
+    expected_ngrams = [("a", "b",)]
+    ngram_size = 2
+    
+    ngrams = list(NgramEnumerator.enumerate_ngrams(tokens, ngram_size))
+
+    assert ngrams == expected_ngrams
     
 def test_markov_model_init():
     size = 5

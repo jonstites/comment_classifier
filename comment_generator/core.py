@@ -61,10 +61,7 @@ class Smoothing:
         pass
 
 
-class Ngram:
-
-    def __init__(self, tokens):
-        self.tokens = tokens
+class NgramEnumerator:
 
     def enumerate_ngrams(tokens, ngram_size):
         ngram_start = 0
@@ -73,24 +70,19 @@ class Ngram:
             ngram_tokens = tokens[ngram_start: ngram_stop]
             ngram_start += 1
             ngram_stop += 1
-            yield Ngram(ngram_tokens)
+            yield tuple(ngram_tokens)
             
     def comment_to_ngrams(comment, ngram_size):
         comment_tokens = Tokenizer.padded_tokens_with_end(text, ngram_size)
-        for ngram in Ngram.enumerate_ngrams(comment_tokens, ngram_size):
+        for ngram in NgramEnumerator.enumerate_ngrams(comment_tokens, ngram_size):
             yield ngram
 
     def comment_to_ngram_range(comment, min_ngram, max_ngram):
         for ngram_size in range(min_ngram, max_ngram + 1):
-            for ngram in Ngram.comment_to_ngrams(comment, ngram_size):
+            for ngram in NgramEnumerator.comment_to_ngrams(comment, ngram_size):
                 yield ngram
 
-    def __eq__(self, other):
-        return self.tokens == other.tokens
 
-    def __ne__(self, other):
-        return not (self.tokens == other.tokens)
-                
 class NgramBuffer:
 
     def __init__(self):

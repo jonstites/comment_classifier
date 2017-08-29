@@ -1,4 +1,4 @@
-from comment_generator.core import Comment, CommentReader, NgramEnumerator, Tokenizer, MarkovModel, NgramDatabase
+from comment_generator.core import Comment, CommentReader, MarkovModel
 from collections import Counter
 import json
 import io
@@ -17,12 +17,6 @@ def get_test_comment():
     content = get_test_content()
     return Comment(content)
 
-def get_pad_token():
-    return Tokenizer.pad_token
-
-def get_end_token():
-    return Tokenizer.end_token
-
 def test_comment_from_string():
     test_comment = get_test_comment()
     content_string = json.dumps(test_comment.content)
@@ -39,6 +33,14 @@ def test_comment_get_body():
     body = comment.get_body()
 
     assert body == text
+
+def test_comment_get_subreddit():
+    comment = get_test_comment()
+    expected_subreddit = get_test_content()["subreddit"]
+
+    subreddit = comment.get_subreddit()
+
+    assert expected_subreddit == subreddit
 
 def test_comment_eq():
     same_comment = get_test_comment()
@@ -70,85 +72,3 @@ def test_comment_reader_from_open_file():
         count += 1
 
     assert count == 1
-
-def test_tokenizer_text_tokens():
-    text = "A test text"
-    test_tokens = ["A", "test", "text"]
-
-    tokens = Tokenizer.tokens(text)
-    
-    assert tokens == test_tokens
-
-def test_tokenizer_padded_tokens():
-    text = "A test text"
-    pad_token = get_pad_token()
-    ngram_size = 3
-    expected_tokens = [pad_token, pad_token, "A", "test", "text"]
-    
-    tokens = Tokenizer.padded_tokens(text, ngram_size)
-
-    assert tokens == expected_tokens
-
-def test_tokenizer_padded_tokens_unigram():
-    text = "A test text"
-    ngram_size = 1
-    expected_tokens = ["A", "test", "text"]
-
-    tokens = Tokenizer.padded_tokens(text, 1)
-
-    assert tokens == expected_tokens
-
-def test_tokenizer_padded_tokens_with_end():
-    text = "A test text"
-    pad_token = get_pad_token()
-    end_token = get_end_token()
-    ngram_size = 2
-    expected_tokens = [pad_token, "A", "test", "text", end_token]
-
-    tokens = Tokenizer.padded_tokens_with_end(text, ngram_size)
-
-    assert tokens == expected_tokens
-
-def test_ngram_enumerate_ngrams():
-    tokens = ["a", "b", "cde"]
-    expected_ngrams = [(token,) for token in tokens]
-    ngram_size = 1
-
-    ngrams = list(NgramEnumerator.enumerate_ngrams(tokens, ngram_size))
-
-    assert ngrams == expected_ngrams    
-
-def test_ngram_enumerate_ngrams_bigrams():
-    tokens = ["a", "b"]
-    expected_ngrams = [("a", "b",)]
-    ngram_size = 2
-    
-    ngrams = list(NgramEnumerator.enumerate_ngrams(tokens, ngram_size))
-
-    assert ngrams == expected_ngrams
-    
-def test_markov_model_init():
-    size = 5
-
-    model = MarkovModel(size)
-
-    assert model.max_ngram_size == size
-
-def test_ngram_database_connect():
-    db_name = "test_ngram.db"
-    ngram_db = NgramDatabase(db_name)
-
-    assert os.path.exists(db_name)
-
-    os.remove(db_name)
-
-def test_ngram_database_create_table():
-    db_name = "test_ngram.db"
-    ngram_db = NgramDatabase(db_name)
-    query = "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?"
-    
-    ngram_db.create_table()
-    result = ngram_db.connection.execute(query, ("ngrams",))
-    os.remove(db_name)
-    
-    assert list(result) != []

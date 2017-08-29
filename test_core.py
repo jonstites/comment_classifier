@@ -63,7 +63,6 @@ def test_comment_reader_from_open_file():
     test_comment = get_test_comment()
     content = test_comment.content
     content_string = json.dumps(content)
-
     handle = io.StringIO(content_string)    
 
     count = 0
@@ -72,3 +71,70 @@ def test_comment_reader_from_open_file():
         count += 1
 
     assert count == 1
+
+def test_comment_reader_get_batch():
+    test_comment = get_test_comment()
+    content = test_comment.content
+    content_string = json.dumps(content)
+
+    handle = io.StringIO(content_string + "\n" + content_string)
+
+    batch_count = 0
+    comment_count = 0
+    for batch in CommentReader.get_batch(handle, 2):
+        batch_count += 1
+        for comment in batch:
+            comment_count += 1
+
+    assert batch_count == 1            
+    assert comment_count == 2
+
+def test_comment_reader_get_batch_by_subreddit_diff():
+    test_comment = get_test_comment()
+    test_subreddit = test_comment.get_subreddit()
+    different_subreddit = test_subreddit + "different_string"
+    use_subreddits = set([different_subreddit])
+    content = test_comment.content
+    content_string = json.dumps(content)
+    handle = io.StringIO(content_string + "\n" + content_string)
+
+    batch_count = 0
+    comment_count = 0
+    for batch in CommentReader.get_batch(handle, 2, use_subreddits):
+        batch_count += 1
+        for comment in batch:
+            comment_count += 1
+
+    assert batch_count == 0
+    assert comment_count == 0
+    
+def test_comment_reader_get_batch_by_subreddit_same():
+    test_comment = get_test_comment()
+    test_subreddit = test_comment.get_subreddit()
+    same_subreddit = test_subreddit
+    use_subreddits = set([same_subreddit])
+    content = test_comment.content
+    content_string = json.dumps(content)
+    handle = io.StringIO(content_string + "\n" + content_string)
+
+    batch_count = 0
+    comment_count = 0
+    for batch in CommentReader.get_batch(handle, 2, use_subreddits):
+        batch_count += 1
+        for comment in batch:
+            comment_count += 1
+
+    assert batch_count == 1
+    assert comment_count == 2
+    
+def test_comment_reader_get_subreddit_counts():
+    test_comment = get_test_comment()
+    subreddit = test_comment.get_subreddit()
+    content = test_comment.content
+    content_string = json.dumps(content)
+    test_counts = Counter([subreddit, subreddit])
+    handle = io.StringIO(content_string + "\n" + content_string)
+
+    counts = CommentReader.get_subreddit_counts(handle)
+    
+    assert counts == test_counts

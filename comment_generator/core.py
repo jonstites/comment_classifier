@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 
-
 from collections import Counter
 import json
-import itertools
-import pickle
-import sqlite3
-
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.linear_model import SGDClassifier
 
@@ -41,22 +36,23 @@ class CommentReader:
             comment = Comment.from_string(line)
             yield comment
 
-    def get_text_batch(opened_handle, batch_size=1000000, use_subreddits=None):
-        texts = []
-        subreddits = []
+    def get_batch(opened_handle, batch_size, use_subreddits=None):
+        comments = []
+        for comment in CommentReader.from_open_file(opened_handle):
+            if use_subreddits:
+                subreddit = comment.get_subreddit()
+                if subreddit not in use_subreddits:
+                    continue
+            comments.append(comment)
+            if len(comments) == batch_size:
+                yield comments
+
+    def get_subreddit_counts(opened_handle):
+        counts = Counter()
         for comment in CommentReader.from_open_file(opened_handle):
             subreddit = comment.get_subreddit()
-            if subreddit not in use_subreddits:
-                continue
-            subreddits.append(subreddit)
-
-            text = comment.get_body()
-            texts.append(text)
-
-            if len(subreddits) == batch_size:
-                yield texts, subreddits
-                texts = []
-                subreddits = []
+            counts[subreddit] += 1
+        return counts
                 
 class MarkovModel:
 
